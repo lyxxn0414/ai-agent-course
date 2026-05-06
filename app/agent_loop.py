@@ -10,7 +10,10 @@ The loop retries if extraction confidence is low (max 3 iterations).
 
 import json
 import os
+from dotenv import load_dotenv
 from openai import OpenAI
+
+load_dotenv()
 
 from app.graph_store import graph_store
 
