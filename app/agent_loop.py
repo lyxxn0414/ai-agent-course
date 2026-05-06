@@ -11,21 +11,30 @@ The loop retries if extraction confidence is low (max 3 iterations).
 import json
 import os
 from dotenv import load_dotenv
-from openai import OpenAI
 
-load_dotenv()
+load_dotenv(override=True)
 
 from app.graph_store import graph_store
 
-# Initialize OpenAI-compatible client (支持 DeepSeek、智谱、OpenAI 等兼容 API)
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY", ""),
-    base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-)
+# 支持 Azure OpenAI 和标准 OpenAI 兼容 API
+# 如果设置了 AZURE_OPENAI_ENDPOINT，则使用 Azure 客户端
+if os.getenv("AZURE_OPENAI_ENDPOINT"):
+    from openai import AzureOpenAI
+    client = AzureOpenAI(
+        api_key=os.getenv("OPENAI_API_KEY", ""),
+        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT", ""),
+        api_version=os.getenv("AZURE_API_VERSION", "2024-12-01-preview"),
+    )
+else:
+    from openai import OpenAI
+    client = OpenAI(
+        api_key=os.getenv("OPENAI_API_KEY", ""),
+        base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+    )
 
 EXTRACTION_PROMPT = """Extract knowledge triples (subject, relation, object) from the following text.
 Return a JSON object with:
-- "triples": list of {"subject": str, "relation": str, "object": str}
+- "triples": list of {{"subject": str, "relation": str, "object": str}}
 - "confidence": float between 0 and 1 (how confident you are the extraction is complete and accurate)
 
 Text: {text}
