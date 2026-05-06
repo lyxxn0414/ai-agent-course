@@ -14,8 +14,11 @@ from openai import OpenAI
 
 from app.graph_store import graph_store
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
+# Initialize OpenAI-compatible client (支持 DeepSeek、智谱、OpenAI 等兼容 API)
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY", ""),
+    base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+)
 
 EXTRACTION_PROMPT = """Extract knowledge triples (subject, relation, object) from the following text.
 Return a JSON object with:
