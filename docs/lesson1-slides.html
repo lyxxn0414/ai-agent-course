@@ -1,1412 +1,1478 @@
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Studio Presentation</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!--
-      Studio style uses three font families:
-        1. Barlow 900       — the entire display and heading system; becomes graphic at scale
-        2. Barlow 400/500   — body, lead paragraphs
-        3. IBM Plex Mono    — footer metadata, slide counters, caption labels
-        4. Noto Sans SC     — Chinese fallback for all roles
-    -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700;800;900&family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap"
-      rel="stylesheet"
-    />
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent 课程 — 第一课：智能体架构与原理</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Zilla+Slab:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      /* ╔══════════════════════════════════════════════════════════════════════╗
-   ║  ZONE A · TOKENS  —  STUDIO STYLE                                    ║
-   ║                                                                      ║
-   ║  Replace this block to change the visual style entirely.             ║
-   ║  Every color, font, and size in this file reads from these vars.     ║
-   ║  Never write raw hex values, font names, or px sizes outside here.   ║
-   ╚══════════════════════════════════════════════════════════════════════╝ */
-      :root {
-        /* ── Palette ──────────────────────────────────────────────────────── */
-        /* Near-black: the dark slide background — warm dark, not cold neutral */
-        --c-bg: #1c1c1c;
-        /* Slightly lighter near-black for secondary dark surfaces */
-        --c-bg-alt: #242422;
-        /* Acid yellow: THE light slide background — yellow is the environment, not an accent */
-        --c-bg-light: #f5d200;
-        /* Slightly cooler yellow for secondary light surfaces */
-        --c-bg-light-alt: #f0cc00;
-
-        /* Primary text on dark: acid yellow — the only colour on dark slides */
-        --c-fg: #f5d200;
-        /* Secondary text on dark: yellow at 58% opacity — muted but still warm */
-        --c-fg-2: rgba(245, 210, 0, 0.58);
-        /* Tertiary / hint text on dark: yellow at 32% */
-        --c-fg-3: rgba(245, 210, 0, 0.32);
-        /* Primary text on light: near-black on yellow */
-        --c-fg-light: #1c1c1c;
-        /* Secondary text on light: near-black at 62% */
-        --c-fg-light-2: rgba(28, 28, 28, 0.62);
-        /* Tertiary text on light */
-        --c-fg-light-3: rgba(28, 28, 28, 0.35);
-
-        /* Accent: yellow on dark / same yellow (var reused by engine) */
-        --c-accent: #f5d200;
-        /* Dividers on dark: very dark warm border */
-        --c-border: #2e2e2c;
-        /* Dividers on light: near-black at 18% opacity on yellow */
-        --c-border-light: rgba(28, 28, 28, 0.18);
-
-        /* ── Typography ──────────────────────────────────────────────────── */
-        /* Display + Heading: Barlow 900 — grotesque at max weight becomes a graphic object */
-        --f-display: "Barlow", "Noto Sans SC", sans-serif;
-        --f-heading: "Barlow", "Noto Sans SC", sans-serif;
-        /* Body: Barlow 400/500 — same family, steps back as weight drops */
-        --f-body: "Barlow", "Noto Sans SC", system-ui, sans-serif;
-        /* Mono: IBM Plex Mono — metadata, counters, footer columns */
-        --f-mono: "IBM Plex Mono", monospace;
-
-        /* ── Type Scale ───────────────────────────────────────────────────── */
-        /* Studio runs type LARGER than Signal — the headline IS the layout */
-        --sz-display: 12vw; /* cover hero — type at maximum scale */
-        --sz-h1: 7.5vw; /* chapter titles, statement headlines */
-        --sz-h2: 4.8vw; /* section headers */
-        --sz-h3: 2.8vw; /* sub-headlines */
-        --sz-lead: 1.6vw; /* intro paragraphs */
-        --sz-body: 1.15vw; /* body text, bullets */
-        --sz-caption: 0.85vw; /* captions, footnotes */
-        --sz-label: 0.72vw; /* mono metadata, chrome */
-
-        /* ── Spacing ─────────────────────────────────────────────────────── */
-        /* Studio pads tighter than Signal — type runs to near-edge */
-        --pad-x: 5vw;
-        --pad-y: 5vh;
-        --gap-lg: 3.5vh;
-        --gap-md: 2vh;
-        --gap-sm: 1vh;
-
-        /* ── Motion ──────────────────────────────────────────────────────── */
-        /* Harder, sharper transitions — agency urgency, not editorial grace */
-        --ease-slide: cubic-bezier(0.77, 0, 0.175, 1);
-        --dur-slide: 0.75s;
-        --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
-        --dur-enter: 0.5s;
-      }
-
-      /* ╔══════════════════════════════════════════════════════════════════════╗
-   ║  ZONE B · ENGINE — DO NOT MODIFY                                     ║
-   ║                                                                      ║
-   ║  Layout engine, transitions, animation system, navigation.           ║
-   ║  Touching this breaks the mechanics.                                 ║
-   ╚══════════════════════════════════════════════════════════════════════╝ */
-
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      html,
-      body {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: var(--c-bg);
-        -webkit-font-smoothing: antialiased;
-      }
-
-      /* Deck container — all slides sit side by side in one horizontal strip */
-      #deck {
-        display: flex;
-        height: 100vh;
-        transition: transform var(--dur-slide) var(--ease-slide);
-        will-change: transform;
-      }
-
-      /* Slide base — each slide occupies exactly one full viewport */
-      .slide {
-        flex: 0 0 100vw;
-        width: 100vw;
-        height: 100vh;
-        position: relative;
-        padding: var(--pad-y) var(--pad-x);
-        display: grid;
-        grid-template-rows: auto 1fr auto;
-        overflow: hidden;
-      }
-      .slide-body {
-        min-height: 0;
-      }
-
-      /* Slide themes */
-      .slide.dark {
-        background: var(--c-bg);
-        color: var(--c-fg);
-      }
-      .slide.light {
-        background: var(--c-bg-light);
-        color: var(--c-fg-light);
-      }
-
-      /* ── Animation system ─────────────────────────────────────────────── */
-      /* Elements start invisible; become visible only when slide is active */
-      [data-anim] {
-        opacity: 0;
-      }
-      .slide.is-active [data-anim] {
-        animation-duration: var(--dur-enter);
-        animation-timing-function: var(--ease-enter);
-        animation-fill-mode: forwards;
-      }
-      .slide.is-active [data-anim="fade-up"] {
-        animation-name: kFadeUp;
-      }
-      .slide.is-active [data-anim="fade-in"] {
-        animation-name: kFadeIn;
-      }
-      .slide.is-active [data-anim="reveal-right"] {
-        animation-name: kRevealRight;
-      }
-      .slide.is-active [data-anim="reveal-left"] {
-        animation-name: kRevealLeft;
-      }
-      .slide.is-active [data-anim="scale-in"] {
-        animation-name: kScaleIn;
-      }
-
-      /* Staggered delays via data-delay attribute (0–6) */
-      [data-delay="0"] {
-        animation-delay: 0s;
-      }
-      [data-delay="1"] {
-        animation-delay: 0.08s;
-      }
-      [data-delay="2"] {
-        animation-delay: 0.18s;
-      }
-      [data-delay="3"] {
-        animation-delay: 0.3s;
-      }
-      [data-delay="4"] {
-        animation-delay: 0.44s;
-      }
-      [data-delay="5"] {
-        animation-delay: 0.6s;
-      }
-      [data-delay="6"] {
-        animation-delay: 0.78s;
-      }
-
-      @keyframes kFadeUp {
-        from {
-          opacity: 0;
-          transform: translateY(28px);
+        :root {
+            --yellow: #ffe066;
+            --yellow-deep: #ffd43b;
+            --blue: #a5d8ff;
+            --blue-deep: #74c0fc;
+            --pink: #ffc9c9;
+            --pink-deep: #ff9f9f;
+            --green: #b2f2bb;
+            --green-deep: #8ce99a;
+            --orange: #ffcc80;
+            --purple: #d0bfff;
+            --cream: #faf8f3;
+            --paper: #f7f5f0;
+            --ink: #2d2a26;
+            --ink-light: #5c5750;
+            --shadow: rgba(45, 42, 38, 0.15);
+            --shadow-deep: rgba(45, 42, 38, 0.25);
         }
-        to {
-          opacity: 1;
-          transform: none;
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      }
-      @keyframes kFadeIn {
-        from {
-          opacity: 0;
+
+        html {
+            scroll-behavior: smooth;
         }
-        to {
-          opacity: 1;
+
+        body {
+            font-family: 'Zilla Slab', serif;
+            background: var(--paper);
+            color: var(--ink);
+            /* Switched to overflow: hidden so the deck behaves like a
+               slide-by-slide presentation rather than a long-scroll page. */
+            overflow: hidden;
+            cursor: default;
+            height: 100vh;
         }
-      }
-      @keyframes kRevealRight {
-        from {
-          clip-path: inset(0 100% 0 0);
-          opacity: 1;
+
+        /* Custom cursor - thumbtack feel */
+        .slide {
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='5' fill='%23ff6b6b'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%23fff'/%3E%3C/svg%3E") 12 12, auto;
         }
-        to {
-          clip-path: inset(0 0% 0 0);
-          opacity: 1;
+
+        /* Paper grain overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 200px 200px;
         }
-      }
-      @keyframes kRevealLeft {
-        from {
-          clip-path: inset(0 0 0 100%);
-          opacity: 1;
+
+        .presentation {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
         }
-        to {
-          clip-path: inset(0 0 0 0%);
-          opacity: 1;
+
+        /* Slides stack on top of each other; only .active is shown.
+           Same visual layout as before — just hidden until activated. */
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 3rem;
+            page-break-after: always;
         }
-      }
-      @keyframes kScaleIn {
-        from {
-          opacity: 0;
-          transform: scale(0.94);
+        .slide.active { display: flex; }
+
+        /* Background patterns for different slides */
+        .slide::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 0;
         }
-        to {
-          opacity: 1;
-          transform: none;
+
+        /* Cork board texture */
+        .bg-cork::before {
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(210, 170, 120, 0.3) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(190, 150, 100, 0.2) 0%, transparent 40%),
+                linear-gradient(135deg, #e8ddd0 0%, #d4c5b0 50%, #c9b8a0 100%);
+            background-size: 100% 100%, 100% 100%, 100% 100%;
         }
-      }
 
-      /* ── Navigation UI ───────────────────────────────────────────────── */
-      #nav-dots {
-        position: fixed;
-        bottom: 24px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        gap: 7px;
-        z-index: 100;
-      }
-      .nav-dot {
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-        border: none;
-        background: rgba(255, 255, 255, 0.22);
-        cursor: pointer;
-        transition:
-          background 0.3s,
-          transform 0.3s;
-        padding: 0;
-      }
-      .nav-dot.is-active {
-        background: rgba(255, 255, 255, 0.8);
-        transform: scale(1.4);
-      }
+        .bg-cork::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23b8a088' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+            z-index: 0;
+        }
 
-      #slide-counter {
-        position: fixed;
-        bottom: 20px;
-        right: 28px;
-        font-family: var(--f-mono);
-        font-size: 10px;
-        letter-spacing: 0.12em;
-        color: rgba(255, 255, 255, 0.25);
-        z-index: 100;
-        user-select: none;
-      }
+        /* Paper desk texture */
+        .bg-paper::before {
+            background: 
+                linear-gradient(180deg, #faf8f3 0%, #f5f2ec 100%);
+        }
 
-      /* ╔══════════════════════════════════════════════════════════════════════╗
-   ║  ZONE C · TYPOGRAPHY  —  STUDIO OVERRIDES                            ║
-   ║                                                                      ║
-   ║  All headings: weight 900, uppercase, tight tracking.                ║
-   ║  The headline is not decoration — it IS the design.                  ║
-   ╚══════════════════════════════════════════════════════════════════════╝ */
+        .bg-paper::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(200, 190, 175, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 190, 175, 0.08) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+        }
 
-      /* Display: maximum weight, maximum scale, uppercase — type as visual mass */
-      .display {
-        font-size: var(--sz-display);
-        font-weight: 900;
-        line-height: 0.9;
-        letter-spacing: -0.02em;
-        text-transform: uppercase;
-        font-family: var(--f-display);
-      }
-      .h1 {
-        font-size: var(--sz-h1);
-        font-weight: 900;
-        line-height: 0.92;
-        letter-spacing: -0.02em;
-        text-transform: uppercase;
-        font-family: var(--f-heading);
-      }
-      .h2 {
-        font-size: var(--sz-h2);
-        font-weight: 900;
-        line-height: 0.95;
-        letter-spacing: -0.01em;
-        text-transform: uppercase;
-        font-family: var(--f-heading);
-      }
-      .h3 {
-        font-size: var(--sz-h3);
-        font-weight: 700;
-        line-height: 1.1;
-        text-transform: uppercase;
-        font-family: var(--f-heading);
-      }
-      .lead {
-        font-size: var(--sz-lead);
-        font-weight: 500;
-        line-height: 1.45;
-        font-family: var(--f-body);
-      }
-      .body {
-        font-size: var(--sz-body);
-        font-weight: 400;
-        line-height: 1.6;
-        font-family: var(--f-body);
-      }
-      .caption {
-        font-size: var(--sz-caption);
-        font-weight: 400;
-        line-height: 1.5;
-        font-family: var(--f-body);
-      }
-      /* Label: mono metadata — the only non-bold text that gets prominence */
-      .label {
-        font-size: var(--sz-label);
-        font-weight: 500;
-        letter-spacing: 0.06em;
-        font-family: var(--f-mono);
-      }
+        /* Warm gradient background */
+        .bg-warm::before {
+            background: 
+                radial-gradient(ellipse at 30% 20%, rgba(255, 224, 102, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(165, 216, 255, 0.3) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(255, 201, 201, 0.15) 0%, transparent 60%),
+                linear-gradient(160deg, #fdf8f0 0%, #f7f0e6 100%);
+        }
 
-      /* Muted variants — context-aware opacity */
-      .muted {
-        color: var(--c-fg-2);
-      }
-      .light .muted {
-        color: var(--c-fg-light-2);
-      }
+        /* Post-it note base styles */
+        .post-it {
+            position: relative;
+            padding: 2rem;
+            box-shadow: 
+                2px 3px 15px var(--shadow),
+                0 1px 3px var(--shadow-deep);
+            transition: transform 0.3s ease;
+            z-index: 1;
+        }
 
-      /* Accent colour class */
-      .accent {
-        color: var(--c-accent);
-      }
-      /* On light slides, accent is the dark foreground */
-      .light .accent {
-        color: var(--c-fg-light);
-      }
+        .post-it-yellow {
+            background: var(--yellow);
+            background: linear-gradient(135deg, var(--yellow) 0%, var(--yellow-deep) 100%);
+        }
 
-      /* Bullet list — Studio signature: dash bullet in accent, tight spacing */
-      .bullet-list {
-        list-style: none;
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-sm);
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        font-weight: 400;
-        line-height: 1.5;
-        padding-left: 1em;
-      }
-      .bullet-list li::before {
-        content: "\2014"; /* em dash used as bullet marker */
-        margin-left: -1em;
-        margin-right: 0.5em;
-        color: var(--c-accent);
-      }
-      .light .bullet-list li::before {
-        color: var(--c-fg-light);
-      }
+        .post-it-blue {
+            background: var(--blue);
+            background: linear-gradient(135deg, var(--blue) 0%, var(--blue-deep) 100%);
+        }
 
-      /* ── Studio cover footer: three-column metadata bar ──────────────────── */
-      /* The signature Boring Studios three-column foot: studio × client, title, name */
-      .cover-footer {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 0;
-        padding-top: var(--gap-md);
-        border-top: 1px solid var(--c-fg-3);
-        margin-top: auto;
-      }
-      .cover-footer-col {
-        font-family: var(--f-mono);
-        font-size: var(--sz-caption);
-        font-weight: 400;
-        line-height: 1.5;
-      }
-      .cover-footer-col:last-child {
-        text-align: right;
-      }
+        .post-it-pink {
+            background: var(--pink);
+            background: linear-gradient(135deg, var(--pink) 0%, var(--pink-deep) 100%);
+        }
 
-      /* Image placeholder box — dark warm grey rectangle, mono label centered */
-      .img-placeholder {
-        background: var(--c-bg-alt);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.1em;
-        color: var(--c-fg-3);
-        width: 100%;
-        flex: 1;
-      }
-      .light .img-placeholder {
-        background: var(--c-bg-light-alt);
-        color: var(--c-fg-light-3);
-        border: 1px solid var(--c-border-light);
-      }
+        .post-it-green {
+            background: var(--green);
+            background: linear-gradient(135deg, var(--green) 0%, var(--green-deep) 100%);
+        }
 
-      /* ╔══════════════════════════════════════════════════════════════════════╗
-   ║  ZONE D · CHROME                                                     ║
-   ╚══════════════════════════════════════════════════════════════════════╝ */
+        .post-it-orange {
+            background: var(--orange);
+        }
 
-      /* Chrome (top bar) and footer */
-      .slide-chrome,
-      .slide-foot {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .slide-chrome {
-        padding-bottom: var(--gap-sm);
-        border-bottom: 1px solid var(--c-border);
-        margin-bottom: var(--gap-md);
-      }
-      .slide-foot {
-        padding-top: var(--gap-sm);
-        border-top: 1px solid var(--c-border);
-        margin-top: var(--gap-md);
-      }
-      .light .slide-chrome,
-      .light .slide-foot {
-        border-color: var(--c-border-light);
-      }
+        .post-it-purple {
+            background: var(--purple);
+        }
 
-      /* Special layouts that don't use chrome/foot */
-      .slide--cover .slide-chrome,
-      .slide--cover .slide-foot,
-      .slide--chapter .slide-chrome,
-      .slide--chapter .slide-foot,
-      .slide--quote .slide-chrome,
-      .slide--quote .slide-foot,
-      .slide--statement .slide-chrome,
-      .slide--statement .slide-foot,
-      .slide--end .slide-chrome,
-      .slide--end .slide-foot {
-        display: none;
-      }
+        .post-it-white {
+            background: #fff;
+            border: 2px solid var(--ink);
+        }
 
-      /* ╔══════════════════════════════════════════════════════════════════════╗
-   ║  ZONE E · LAYOUT PATTERNS  —  STUDIO-SPECIFIC                       ║
-   ╚══════════════════════════════════════════════════════════════════════╝ */
+        /* Thumbtack / pin decoration */
+        .pin::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a);
+            box-shadow: 0 2px 4px var(--shadow-deep), inset -2px -2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
 
-      /* 1. COVER ─────────────────────────────────────────────────────────── */
-      /* Full dark slide, image placeholder fills the background, type overlaid */
-      .slide--cover {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 0;
-        position: relative;
-      }
-      /* Image placeholder sits absolute behind everything */
-      .cover-img-area {
-        position: absolute;
-        inset: 0;
-        background: var(
-          --c-bg-alt
-        ); /* warm dark placeholder — replace with real image */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.1em;
-        color: var(--c-fg-3);
-      }
-      /* Type area: z-index above the image, padded normally */
-      .cover-type {
-        position: relative;
-        z-index: 1;
-        padding: var(--pad-y) var(--pad-x) 0;
-        flex: 1;
-        display: flex;
-        align-items: flex-start;
-      }
-      /* Three-column meta footer over the image */
-      .cover-meta {
-        position: relative;
-        z-index: 1;
-        padding: var(--gap-md) var(--pad-x) var(--pad-y);
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 0;
-        border-top: 1px solid rgba(245, 210, 0, 0.25);
-      }
-      .cover-meta-col {
-        font-family: var(--f-mono);
-        font-size: var(--sz-caption);
-        font-weight: 400;
-        line-height: 1.6;
-        color: var(--c-fg-2);
-      }
-      .cover-meta-col:last-child {
-        text-align: right;
-      }
+        .pin-blue::before {
+            background: radial-gradient(circle at 30% 30%, #4dabf7, #1864ab);
+        }
 
-      /* 2. CHAPTER ───────────────────────────────────────────────────────── */
-      /* Yellow or dark chapter divider — huge uppercase section number + title */
-      .slide--chapter {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        padding-bottom: calc(var(--pad-y) * 1.5);
-      }
-      .chapter-num {
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        color: var(--c-fg-2);
-        margin-bottom: var(--gap-lg);
-      }
-      .light .chapter-num {
-        color: var(--c-fg-light-2);
-      }
+        .pin-green::before {
+            background: radial-gradient(circle at 30% 30%, #69db7c, #2f9e44);
+        }
 
-      /* 3. STATEMENT ─────────────────────────────────────────────────────── */
-      /* Full-slide statement — huge uppercase type, zero decoration */
-      .slide--statement {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        padding-bottom: calc(var(--pad-y) * 1.5);
-      }
-      .statement-body {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-      }
+        .pin-gold::before {
+            background: radial-gradient(circle at 30% 30%, #ffd43b, #f59f00);
+        }
 
-      /* 4. SPLIT ─────────────────────────────────────────────────────────── */
-      .slide--split .slide-body {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: calc(var(--pad-x) * 0.8);
-        align-items: center;
-      }
-      .split-text {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-      }
-      .split-image {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-sm);
-        height: 100%;
-      }
+        /* Tape decoration */
+        .tape::after {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-2deg);
+            width: 80px;
+            height: 25px;
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
 
-      /* 5. STATS ─────────────────────────────────────────────────────────── */
-      .slide--stats {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-      .slide--stats .slide-body {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: var(--gap-lg);
-      }
-      /* Stats numbers: huge weight-900 display, near-black on yellow */
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0;
-      }
-      .stat-card {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-sm);
-        padding: var(--gap-md) var(--gap-md) var(--gap-md) 0;
-        border-top: 2px solid var(--c-fg-light);
-      }
-      .dark .stat-card {
-        border-top-color: var(--c-fg-3);
-      }
-      /* Value: weight-900 display type — the number IS the stat */
-      .stat-value {
-        font-family: var(--f-display);
-        font-size: 5.5vw;
-        font-weight: 900;
-        line-height: 0.9;
-        color: var(--c-fg-light);
-        letter-spacing: -0.03em;
-        text-transform: uppercase;
-      }
-      .dark .stat-value {
-        color: var(--c-fg);
-      }
-      .stat-label {
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        font-weight: 500;
-        line-height: 1.4;
-      }
-      .stat-note {
-        font-family: var(--f-mono);
-        font-size: var(--sz-caption);
-        letter-spacing: 0.05em;
-        color: var(--c-fg-light-3);
-      }
-      .dark .stat-note {
-        color: var(--c-fg-3);
-      }
+        /* Typography */
+        h1, h2, h3 {
+            font-family: 'Shrikhand', cursive;
+            font-weight: 400;
+            line-height: 1.1;
+            letter-spacing: 0.02em;
+        }
 
-      /* 6. LIST ─────────────────────────────────────────────────────────── */
-      .slide--list {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-      .slide--list .slide-body {
-        display: grid;
-        grid-template-columns: 2fr 3fr;
-        gap: calc(var(--pad-x) * 0.8);
-        align-items: center;
-      }
-      .list-head {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-      }
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            color: var(--ink);
+        }
 
-      /* 7. QUOTE ─────────────────────────────────────────────────────────── */
-      /* Dark slide — large quote with no quote mark, just raw type */
-      .slide--quote {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-      .quote-text {
-        font-family: var(--f-heading);
-        font-size: 3.8vw;
-        font-weight: 900;
-        line-height: 1.05;
-        letter-spacing: -0.02em;
-        text-transform: uppercase;
-        max-width: 82%;
-        margin-bottom: var(--gap-lg);
-      }
-      .quote-attr {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4vh;
-      }
+        h2 {
+            font-size: clamp(1.8rem, 3.5vw, 3rem);
+            color: var(--ink);
+        }
 
-      /* 8. COMPARE ─────────────────────────────────────────────────────────── */
-      .slide--compare .slide-body {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        height: 100%;
-      }
-      .compare-panel {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-        padding: var(--gap-md) 0;
-      }
-      .compare-panel.left {
-        padding-right: calc(var(--pad-x) * 0.55);
-        border-right: 2px solid var(--c-fg-light);
-      }
-      .compare-panel.right {
-        padding-left: calc(var(--pad-x) * 0.55);
-      }
-      .dark .compare-panel.left {
-        border-right-color: var(--c-fg-3);
-      }
-      .compare-label {
-        font-family: var(--f-mono);
-        font-size: var(--sz-label);
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        padding-bottom: var(--gap-sm);
-        border-bottom: 1px solid var(--c-border-light);
-      }
-      .dark .compare-label {
-        border-bottom-color: var(--c-border);
-      }
-      .compare-label.after {
-        color: var(--c-accent);
-      }
-      .light .compare-label.after {
-        color: var(--c-fg-light);
-        font-weight: 700;
-      }
+        h3 {
+            font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+            color: var(--ink);
+        }
 
-      /* 9. CHART ─────────────────────────────────────────────────────────── */
-      .slide--chart .slide-body {
-        display: flex;
-        flex-direction: column;
-        gap: var(--gap-md);
-        min-height: 0;
-      }
-      .chart-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        flex-shrink: 0;
-      }
-      .chart-wrapper {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        min-height: 0;
-      }
-      /* Bar chart track: bars sit in a horizontal row along a baseline */
-      .bar-track {
-        height: 30vh;
-        display: flex;
-        align-items: flex-end;
-        gap: 4vw;
-        border-left: 2px solid var(--c-fg-3);
-        padding-left: 0.5vw;
-      }
-      .light .bar-track {
-        border-left-color: var(--c-border-light);
-      }
-      .bar-col {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        justify-content: flex-end;
-        gap: 1vh;
-        height: 100%;
-      }
-      /* Bar fill: default is dark muted, accent is full yellow */
-      .bar-fill {
-        width: 100%;
-        background: var(--c-fg-3);
-      }
-      .bar-fill.accent {
-        background: var(--c-accent);
-      }
-      .light .bar-fill {
-        background: var(--c-fg-light-3);
-      }
-      .light .bar-fill.accent {
-        background: var(--c-fg-light);
-      }
-      .bar-x-label {
-        font-family: var(--f-mono);
-        font-size: var(--sz-caption);
-        letter-spacing: 0.1em;
-        color: var(--c-fg-3);
-        white-space: nowrap;
-        text-transform: uppercase;
-      }
-      .light .bar-x-label {
-        color: var(--c-fg-light-3);
-      }
-      .bar-val {
-        font-family: var(--f-body);
-        font-size: var(--sz-body);
-        font-weight: 700;
-        color: var(--c-fg-2);
-      }
-      .bar-val.hi {
-        color: var(--c-accent);
-        font-weight: 900;
-      }
-      .light .bar-val {
-        color: var(--c-fg-light-2);
-      }
-      .light .bar-val.hi {
-        color: var(--c-fg-light);
-      }
-      .chart-baseline {
-        height: 2px;
-        background: var(--c-fg-3);
-        flex-shrink: 0;
-        margin-top: 1px;
-      }
-      .light .chart-baseline {
-        background: var(--c-border-light);
-      }
-      .chart-source {
-        flex-shrink: 0;
-        font-family: var(--f-mono);
-        font-size: var(--sz-caption);
-        color: var(--c-fg-3);
-        letter-spacing: 0.06em;
-        margin-top: var(--gap-sm);
-      }
-      .light .chart-source {
-        color: var(--c-fg-light-3);
-      }
+        p {
+            font-family: 'Zilla Slab', serif;
+            font-size: clamp(1rem, 1.5vw, 1.25rem);
+            line-height: 1.7;
+            color: var(--ink-light);
+        }
 
-      /* 10. END ─────────────────────────────────────────────────────────── */
-      /* Yellow slide — huge question fills top 60%, two-column contact below */
-      .slide--end {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
+        .handwritten {
+            font-family: 'Caveat', cursive;
+            font-size: clamp(1.2rem, 2vw, 1.6rem);
+            line-height: 1.4;
+        }
+
+        .label {
+            font-family: 'Caveat', cursive;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--ink-light);
+        }
+
+        /* Slide content containers */
+        .slide-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        /* ===== SLIDE 1: Title ===== */
+        .slide-title {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .title-cluster {
+            position: relative;
+            display: inline-block;
+        }
+
+        .main-title-postit {
+            display: inline-block;
+            padding: 3rem 4rem;
+            transform: rotate(-2deg);
+        }
+
+        .title-accent-1 {
+            position: absolute;
+            top: -40px;
+            right: -60px;
+            padding: 1.5rem 2rem;
+            transform: rotate(12deg);
+            font-family: 'Caveat', cursive;
+            font-size: 1.5rem;
+            z-index: 2;
+        }
+
+        .title-accent-2 {
+            position: absolute;
+            bottom: -30px;
+            left: -50px;
+            padding: 1.2rem 1.8rem;
+            transform: rotate(-8deg);
+            z-index: 2;
+        }
+
+        .title-accent-3 {
+            position: absolute;
+            top: 20px;
+            left: -80px;
+            width: 80px;
+            height: 80px;
+            padding: 0.5rem;
+            transform: rotate(-15deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Caveat', cursive;
+            font-size: 2rem;
+            z-index: 0;
+        }
+
+        .subtitle-text {
+            margin-top: 3rem;
+            font-family: 'Zilla Slab', serif;
+            font-size: 1.3rem;
+            font-style: italic;
+            color: var(--ink-light);
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        /* ===== SLIDE 2: Big Statement ===== */
+        .statement-layout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .statement-postit {
+            max-width: 700px;
+            padding: 3.5rem 4rem;
+            transform: rotate(1deg);
+            text-align: center;
+        }
+
+        .statement-postit h2 {
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            margin-bottom: 1.5rem;
+        }
+
+        .side-note {
+            position: absolute;
+            right: 5%;
+            top: 15%;
+            padding: 1.5rem;
+            max-width: 200px;
+            transform: rotate(8deg);
+        }
+
+        /* ===== SLIDE 3: Two Column ===== */
+        .two-col-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        .col-postit {
+            padding: 2.5rem;
+        }
+
+        .col-postit h3 {
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--ink);
+            display: inline-block;
+        }
+
+        .col-postit p {
+            margin-bottom: 1rem;
+        }
+
+        .col-postit ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .col-postit li {
+            font-family: 'Zilla Slab', serif;
+            font-size: 1.1rem;
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .col-postit li::before {
+            content: '\2713';
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* ===== SLIDE 4: Chart Slide ===== */
+        .chart-layout {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .chart-container {
+            background: #fff;
+            padding: 2.5rem;
+            box-shadow: 2px 3px 15px var(--shadow);
+            transform: rotate(-1deg);
+        }
+
+        .chart-legend {
+            padding: 2rem;
+            transform: rotate(2deg);
+        }
+
+        .chart-legend h3 {
+            margin-bottom: 1.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+            font-family: 'Zilla Slab', serif;
+            font-size: 1.1rem;
+        }
+
+        .legend-swatch {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        /* Hand-drawn bar chart */
+        .sketch-chart {
+            width: 100%;
+            height: auto;
+        }
+
+        .bar-group {
+            animation: growBar 1s ease-out forwards;
+            transform-origin: bottom;
+        }
+
+        @keyframes growBar {
+            from { transform: scaleY(0); }
+            to { transform: scaleY(1); }
+        }
+
+        /* ===== SLIDE 5: Three Cards ===== */
+        .three-col-layout {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2.5rem;
+            align-items: start;
+        }
+
+        .feature-postit {
+            padding: 2.5rem 2rem;
+            text-align: center;
+        }
+
+        .feature-postit:nth-child(1) { transform: rotate(-3deg); }
+        .feature-postit:nth-child(2) { transform: rotate(2deg); margin-top: 2rem; }
+        .feature-postit:nth-child(3) { transform: rotate(-1deg); }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1.5rem;
+            border: 3px solid var(--ink);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Shrikhand', cursive;
+            font-size: 1.5rem;
+        }
+
+        .feature-postit h3 {
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        /* ===== SLIDE 6: Timeline ===== */
+        .timeline-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .timeline-row {
+            display: flex;
+            align-items: stretch;
+            gap: 2rem;
+        }
+
+        .timeline-row:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .timeline-node {
+            padding: 2rem;
+            min-width: 200px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .timeline-connector {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .timeline-connector svg {
+            width: 100%;
+            height: 60px;
+        }
+
+        .timeline-content {
+            padding: 2rem;
+            flex: 1;
+        }
+
+        .timeline-content h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .phase-label {
+            font-family: 'Caveat', cursive;
+            font-size: 1.2rem;
+            margin-top: 0.5rem;
+        }
+
+        /* ===== SLIDE 7: Image + Text ===== */
+        .imgtext-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .photo-frame {
+            background: #fff;
+            padding: 1rem;
+            box-shadow: 2px 3px 15px var(--shadow);
+            transform: rotate(-2deg);
+        }
+
+        .photo-frame .photo-inner {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: 
+                linear-gradient(135deg, #e9ecef 0%, #dee2e6 50%, #ced4da 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .photo-inner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 40% 40%, rgba(255,224,102,0.3) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(165,216,255,0.3) 0%, transparent 50%);
+        }
+
+        .photo-placeholder {
+            font-family: 'Shrikhand', cursive;
+            font-size: 1.5rem;
+            color: var(--ink-light);
+            opacity: 0.4;
+            z-index: 1;
+        }
+
+        .text-cluster {
+            position: relative;
+        }
+
+        .main-text-postit {
+            padding: 2.5rem;
+            transform: rotate(1deg);
+            margin-bottom: 1.5rem;
+        }
+
+        .mini-note {
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            padding: 1rem 1.5rem;
+            transform: rotate(5deg);
+            font-family: 'Caveat', cursive;
+            font-size: 1.3rem;
+            z-index: 2;
+        }
+
+        /* ===== SLIDE 8: Data Diagram ===== */
+        .diagram-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .diagram-canvas {
+            background: #fff;
+            padding: 2.5rem;
+            box-shadow: 2px 3px 15px var(--shadow);
+            transform: rotate(-1deg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .diagram-canvas h3 {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .diagram-note {
+            padding: 2rem;
+            transform: rotate(2deg);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px dashed rgba(45, 42, 38, 0.2);
+        }
+
+        .stat-value {
+            font-family: 'Shrikhand', cursive;
+            font-size: 1.8rem;
+            color: var(--ink);
+        }
+
+        .stat-label {
+            font-family: 'Zilla Slab', serif;
+            font-size: 1.1rem;
+            color: var(--ink-light);
+        }
+
+        /* ===== SLIDE 9: Comparison ===== */
+        .compare-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: stretch;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .compare-postit {
+            padding: 3rem;
+            position: relative;
+        }
+
+        .compare-postit.left {
+            transform: rotate(-2deg);
+        }
+
+        .compare-postit.right {
+            transform: rotate(2deg);
+        }
+
+        .compare-vs {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: var(--ink);
+            color: var(--paper);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Shrikhand', cursive;
+            font-size: 1.2rem;
+            z-index: 10;
+            box-shadow: 0 2px 8px var(--shadow-deep);
+        }
+
+        .compare-postit h3 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 3px solid var(--ink);
+        }
+
+        .compare-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .compare-list li {
+            font-family: 'Zilla Slab', serif;
+            font-size: 1.1rem;
+            padding: 0.8rem 0;
+            line-height: 1.5;
+            border-bottom: 1px solid rgba(45, 42, 38, 0.1);
+        }
+
+        .compare-list li:last-child {
+            border-bottom: none;
+        }
+
+        /* ===== SLIDE 10: Closing ===== */
+        .closing-cluster {
+            position: relative;
+            text-align: center;
+        }
+
+        .closing-main {
+            display: inline-block;
+            padding: 3rem 5rem;
+            transform: rotate(-1deg);
+        }
+
+        .closing-main h2 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+        }
+
+        .closing-accent-1 {
+            position: absolute;
+            top: -50px;
+            left: -80px;
+            padding: 1.5rem;
+            transform: rotate(-12deg);
+            font-family: 'Caveat', cursive;
+            font-size: 1.4rem;
+            z-index: 2;
+        }
+
+        .closing-accent-2 {
+            position: absolute;
+            bottom: -40px;
+            right: -60px;
+            padding: 1.5rem 2rem;
+            transform: rotate(8deg);
+            z-index: 2;
+        }
+
+        .closing-accent-3 {
+            position: absolute;
+            top: 0;
+            right: -100px;
+            padding: 1rem;
+            transform: rotate(15deg);
+            z-index: 0;
+        }
+
+        .closing-accent-4 {
+            position: absolute;
+            bottom: -20px;
+            left: -60px;
+            padding: 1.2rem;
+            transform: rotate(-6deg);
+            z-index: 0;
+        }
+
+        /* Doodle decorations */
+        .doodle {
+            position: absolute;
+            z-index: 0;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .doodle-circle {
+            border: 3px solid var(--ink);
+            border-radius: 50%;
+        }
+
+        .doodle-line {
+            height: 3px;
+            background: var(--ink);
+            border-radius: 2px;
+        }
+
+        .doodle-squiggle {
+            stroke: var(--ink);
+            stroke-width: 3;
+            fill: none;
+            opacity: 0.15;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .two-col-layout,
+            .chart-layout,
+            .imgtext-layout,
+            .diagram-layout,
+            .compare-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .three-col-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline-row,
+            .timeline-row:nth-child(even) {
+                flex-direction: column;
+            }
+
+            .side-note {
+                position: relative;
+                right: auto;
+                top: auto;
+                margin-top: 2rem;
+            }
+
+            .compare-vs {
+                position: relative;
+                left: auto;
+                top: auto;
+                transform: none;
+                margin: 1rem auto;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .slide {
+                page-break-after: always;
+                min-height: 100vh;
+            }
+        }
     </style>
-  </head>
+</head>
 
-  <body>
-    <nav id="nav-dots"></nav>
-    <div id="slide-counter"></div>
-    <div id="deck">
+<body>
+    <div class="presentation">
 
-      <!-- SLIDE 1 · COVER -->
-      <section class="slide dark slide--cover">
-        <div class="cover-img-area" data-anim="fade-in" data-delay="0">
-          <div style="font-size:8vw;opacity:0.08;font-weight:900;font-family:var(--f-display);letter-spacing:-0.03em;">🤖 AI AGENT</div>
-        </div>
-        <div class="cover-type">
-          <h1 class="display" style="color:var(--c-fg)" data-anim="fade-up" data-delay="1">AI AGENT</h1>
-        </div>
-        <div class="cover-meta" data-anim="fade-in" data-delay="3">
-          <div class="cover-meta-col">AI Agent 课程 × 第一课<br/>2026</div>
-          <div class="cover-meta-col" style="text-align:center">Agent 架构与 Agent Loop</div>
-          <div class="cover-meta-col" style="text-align:right">lyxxn0414</div>
-        </div>
-      </section>
-
-      <!-- SLIDE 2 · CHAPTER: 开场 -->
-      <section class="slide light slide--chapter">
-        <div class="chapter-num" data-anim="fade-in" data-delay="0">01 / 开场</div>
-        <h1 class="h1" style="max-width:90%;color:var(--c-fg-light)" data-anim="fade-up" data-delay="1">为什么学<br/>AI AGENT</h1>
-      </section>
-
-      <!-- SLIDE 3 · STATEMENT -->
-      <section class="slide dark slide--statement">
-        <div class="statement-body" style="justify-content:flex-end;height:100%;display:flex;flex-direction:column;padding-bottom:calc(var(--pad-y)*0.5)">
-          <h1 class="h1" style="max-width:90%" data-anim="fade-up" data-delay="0">CHATGPT 只是起点<br/>AGENT 才是未来</h1>
-          <p class="lead muted" style="margin-top:var(--gap-md);max-width:70%" data-anim="fade-up" data-delay="2">从「你问我答」到「自主完成任务」，AI Agent 是下一代智能应用的核心范式</p>
-        </div>
-      </section>
-
-      <!-- SLIDE 4 · COMPARE: Chat vs Agent -->
-      <section class="slide light slide--compare">
-        <div class="slide-chrome">
-          <span class="label" style="color:var(--c-fg-light-2)" data-anim="fade-in" data-delay="0">Chat vs Agent</span>
-          <span class="label" style="color:var(--c-fg-light-2)" data-anim="fade-in" data-delay="0">04 / 20</span>
-        </div>
-        <div class="slide-body">
-          <div class="compare-panel left" data-anim="fade-up" data-delay="1">
-            <div class="compare-label">CHATBOT</div>
-            <h3 class="h3" style="color:var(--c-fg-light)">传统对话</h3>
-            <ul class="bullet-list">
-              <li>单轮问答，用户驱动</li>
-              <li>无法调用外部工具</li>
-              <li>没有持久记忆</li>
-              <li>不能自主规划任务</li>
-            </ul>
-          </div>
-          <div class="compare-panel right" data-anim="fade-up" data-delay="3">
-            <div class="compare-label after">AI AGENT</div>
-            <h3 class="h3" style="color:var(--c-fg-light)">智能代理</h3>
-            <ul class="bullet-list">
-              <li>多步循环，自主执行</li>
-              <li>可调用工具和 API</li>
-              <li>短期 + 长期记忆</li>
-              <li>自动分解和规划任务</li>
-            </ul>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label" style="color:var(--c-fg-light-2)">AI Agent 课程</span>
-          <span class="label" style="color:var(--c-fg-light-2)">第一课</span>
-        </div>
-      </section>
-
-      <!-- SLIDE 5 · CHAPTER: 核心概念 -->
-      <section class="slide light slide--chapter">
-        <div class="chapter-num" data-anim="fade-in" data-delay="0">02 / 核心概念</div>
-        <h1 class="h1" style="max-width:90%;color:var(--c-fg-light)" data-anim="fade-up" data-delay="1">AGENT 的<br/>四大组件</h1>
-      </section>
-
-      <!-- SLIDE 6 · STATS: 四大组件概览 -->
-      <section class="slide light slide--stats">
-        <div class="slide-chrome">
-          <span class="label" style="color:var(--c-fg-light-2)" data-anim="fade-in" data-delay="0">四大组件</span>
-          <span class="label" style="color:var(--c-fg-light-2)" data-anim="fade-in" data-delay="0">06 / 20</span>
-        </div>
-        <div class="slide-body">
-          <div class="stats-grid" data-anim="fade-up" data-delay="1">
-            <div class="stat-card"><div class="stat-value">LLM</div><div class="stat-label" style="color:var(--c-fg-light)">大脑</div><div class="stat-note">理解意图 · 推理决策</div></div>
-            <div class="stat-card"><div class="stat-value">TOOLS</div><div class="stat-label" style="color:var(--c-fg-light)">工具</div><div class="stat-note">执行操作 · 连接世界</div></div>
-            <div class="stat-card"><div class="stat-value">MEM</div><div class="stat-label" style="color:var(--c-fg-light)">记忆</div><div class="stat-note">上下文 · 持久化</div></div>
-          </div>
-          <div class="stats-grid" data-anim="fade-up" data-delay="3">
-            <div class="stat-card"><div class="stat-value">PLAN</div><div class="stat-label" style="color:var(--c-fg-light)">规划</div><div class="stat-note">任务分解 · 策略选择</div></div>
-            <div class="stat-card" style="border-top-color:transparent"></div>
-            <div class="stat-card" style="border-top-color:transparent"></div>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label" style="color:var(--c-fg-light-2)">AI Agent 课程</span>
-          <span class="label" style="color:var(--c-fg-light-2)">第一课</span>
-        </div>
-      </section>
-
-      <!-- SLIDE 7 · SPLIT: LLM 详解 -->
-      <section class="slide dark slide--split">
-        <div class="slide-chrome">
-          <span class="label" style="color:var(--c-fg-2)" data-anim="fade-in" data-delay="0">LLM — 大脑</span>
-          <span class="label" style="color:var(--c-fg-2)" data-anim="fade-in" data-delay="0">07 / 20</span>
-        </div>
-        <div class="slide-body">
-          <div class="split-text" data-anim="fade-up" data-delay="1">
-            <p class="label" style="color:var(--c-fg-2);letter-spacing:0.12em">LARGE LANGUAGE MODEL</p>
-            <h2 class="h2">Agent 的大脑</h2>
-            <p class="lead muted" style="font-weight:400;text-transform:none">LLM 是 Agent 的核心推理引擎，负责理解用户意图并做出决策。</p>
-          </div>
-          <div data-anim="fade-up" data-delay="3">
-            <ul class="bullet-list">
-              <li>理解自然语言输入</li>
-              <li>生成推理链 (Chain of Thought)</li>
-              <li>决策下一步行动</li>
-              <li>生成结构化输出（JSON / 函数调用）</li>
-              <li>常用：GPT-4、Claude、DeepSeek</li>
-            </ul>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label" style="color:var(--c-fg-2)">AI Agent 课程</span>
-          <span class="label" style="color:var(--c-fg-2)">第一课</span>
-        </div>
-      </section>
-
-      <!-- SLIDE 8 · SPLIT: Tools 详解 -->
-      <section class="slide light slide--split">
-        <div class="slide-chrome">
-          <span class="label" style="color:var(--c-fg-light-2)" data-anim="fade-in" data-delay="0">Tools — 工具</span>
-          <span class="label" style="color:var(--c-fg-light-2)" data-anim="fade-in" data-delay="0">08 / 20</span>
-        </div>
-        <div class="slide-body">
-          <div class="split-text" data-anim="fade-up" data-delay="1">
-            <p class="label" style="color:var(--c-fg-light-2);letter-spacing:0.12em">TOOLS & ACTIONS</p>
-            <h2 class="h2" style="color:var(--c-fg-light)">连接真实世界</h2>
-            <p class="lead" style="color:var(--c-fg-light-2);font-weight:400;text-transform:none">工具让 Agent 从「只会说」变成「能做事」。</p>
-          </div>
-          <div data-anim="fade-up" data-delay="3">
-            <ul class="bullet-list">
-              <li>文件读写操作</li>
-              <li>网络搜索和浏览</li>
-              <li>代码执行（Python / Shell）</li>
-              <li>API 调用（GitHub、数据库…）</li>
-              <li>图像生成 / 语音合成</li>
-            </ul>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label" style="color:var(--c-fg-light-2)">AI Agent 课程</span>
-          <span class="label" style="color:var(--c-fg-light-2)">第一课</span>
-        </div>
-      </section>
-
-      <!-- SLIDE 9 · COMPARE: Memory -->
-      <section class="slide dark slide--compare">
-        <div class="slide-chrome">
-          <span class="label" style="color:var(--c-fg-2)" data-anim="fade-in" data-delay="0">Memory — 记忆</span>
-          <span class="label" style="color:var(--c-fg-2)" data-anim="fade-in" data-delay="0">09 / 20</span>
-        </div>
-        <div class="slide-body">
-          <div class="compare-panel left" data-anim="fade-up" data-delay="1">
-            <div class="compare-label">短期记忆</div>
-            <h3 class="h3">对话上下文</h3>
-            <ul class="bullet-list">
-              <li>当前会话的消息历史</li>
-              <li>工具调用结果缓存</li>
-              <li>会话结束即消失</li>
-            </ul>
-          </div>
-          <div class="compare-panel right" data-anim="fade-up" data-delay="3">
-            <div class="compare-label after">长期记忆</div>
-            <h3 class="h3">持久化存储</h3>
-            <ul class="bullet-list">
-              <li>用户偏好和习惯</li>
-              <li>项目知识和经验</li>
-              <li>跨会话持续生效</li>
-            </ul>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label" style="color:var(--c-fg-2)">AI Agent 课程</span>
-          <span class="label" style="color:var(--c-fg-2)">第一课</span>
-        </div>
-      </section>
-
-      <!-- SLIDE 10 · SPLIT: Planning -->
-      <section class="slide light slide--split">
-        <div class="slide-chrome">
-          <span class="label" style="color:var(--c-fg-light-2)" data-anim="fade-in" data-delay="0">Planning — 规划</span>
-          <span class="label" style="color:var(--c-fg-light-2)" data-anim="fade-in" data-delay="0">10 / 20</span>
-        </div>
-        <div class="slide-body">
-          <div class="split-text" data-anim="fade-up" data-delay="1">
-            <p class="label" style="color:var(--c-fg-light-2);letter-spacing:0.12em">TASK PLANNING</p>
-            <h2 class="h2" style="color:var(--c-fg-light)">像人一样规划</h2>
-            <p class="lead" style="color:var(--c-fg-light-2);font-weight:400;text-transform:none">Agent 不是蛮力执行，而是先想清楚再动手。</p>
-          </div>
-          <div data-anim="fade-up" data-delay="3">
-            <ul class="bullet-list">
-              <li>将复杂任务分解为子任务</li>
-              <li>确定执行优先级</li>
-              <li>选择最优工具组合</li>
-              <li>根据反馈动态调整计划</li>
-              <li>设定置信度阈值终止循环</li>
-            </ul>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label" style="color:var(--c-fg-light-2)">AI Agent 课程</span>
-          <span class="label" style="color:var(--c-fg-light-2)">第一课</span>
-        </div>
-      </section>
-
-      <!-- SLIDE 11 · CHAPTER: Agent Loop -->
-      <section class="slide light slide--chapter">
-        <div class="chapter-num" data-anim="fade-in" data-delay="0">03 / AGENT LOOP</div>
-        <h1 class="h1" style="max-width:90%;color:var(--c-fg-light)" data-anim="fade-up" data-delay="1">AGENT LOOP<br/>核心循环</h1>
-      </section>
-
-      <!-- SLIDE 12 · STATEMENT: 四步循环 -->
-      <section class="slide dark slide--statement">
-        <div class="statement-body" style="justify-content:flex-end;height:100%;display:flex;flex-direction:column;padding-bottom:calc(var(--pad-y)*0.5)">
-          <h1 class="h1" style="max-width:95%" data-anim="fade-up" data-delay="0">感知 → 思考<br/>→ 行动 → 观察</h1>
-          <p class="lead muted" style="margin-top:var(--gap-md);max-width:70%;text-transform:uppercase;letter-spacing:0.05em" data-anim="fade-up" data-delay="2">PERCEIVE → THINK → ACT → OBSERVE</p>
-        </div>
-      </section>
-
-      <!-- SLIDE 13 · SPLIT: Agent Loop 详解 -->
-      <section class="slide dark slide--split">
-        <div class="slide-chrome">
-          <span class="label" style="color:var(--c-fg-2)" data-anim="fade-in" data-delay="0">Agent Loop 详解</span>
-          <span class="label" style="color:var(--c-fg-2)" data-anim="fade-in" data-delay="0">13 / 20</span>
-        </div>
-        <div class="slide-body">
-          <div class="split-text" data-anim="fade-up" data-delay="1">
-            <h2 class="h2">循环机制</h2>
-            <p class="lead muted" style="font-weight:400;text-transform:none">Agent 不断循环执行四个步骤，直到任务完成或达到最大迭代次数。</p>
-          </div>
-          <div data-anim="fade-up" data-delay="3">
-            <ul class="bullet-list" style="gap:var(--gap-md)">
-              <li><strong style="color:var(--c-fg)">Perceive 感知</strong> — 接收用户输入，整理上下文</li>
-              <li><strong style="color:var(--c-fg)">Think 思考</strong> — 调用 LLM，分析和推理</li>
-              <li><strong style="color:var(--c-fg)">Act 行动</strong> — 执行工具调用或生成回复</li>
-              <li><strong style="color:var(--c-fg)">Observe 观察</strong> — 收集结果，判断是否完成</li>
-            </ul>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label" style="color:var(--c-fg-2)">AI Agent 课程</span>
-          <span class="label" style="color:var(--c-fg-2)">第一课</span>
-        </div>
-      </section>
-
-      <!-- SLIDE 14 · COMPARE: 传统程序 vs Agent -->
-      <section class="slide light slide--compare">
-        <div class="slide-chrome">
-          <span class="label" style="color:var(--c-fg-light-2)" data-anim="fade-in" data-delay="0">范式对比</span>
-          <span class="label" style="color:var(--c-fg-light-2)" data-anim="fade-in" data-delay="0">14 / 20</span>
-        </div>
-        <div class="slide-body">
-          <div class="compare-panel left" data-anim="fade-up" data-delay="1">
-            <div class="compare-label">传统程序</div>
-            <h3 class="h3" style="color:var(--c-fg-light)">固定流程</h3>
-            <ul class="bullet-list">
-              <li>if / else 硬编码逻辑</li>
-              <li>输入 → 处理 → 输出</li>
-              <li>遇到意外就崩溃</li>
-              <li>开发者预设所有路径</li>
-            </ul>
-          </div>
-          <div class="compare-panel right" data-anim="fade-up" data-delay="3">
-            <div class="compare-label after">AGENT LOOP</div>
-            <h3 class="h3" style="color:var(--c-fg-light)">动态循环</h3>
-            <ul class="bullet-list">
-              <li>LLM 动态推理决策</li>
-              <li>感知 → 思考 → 行动 → 观察</li>
-              <li>遇到意外自动调整</li>
-              <li>Agent 自主探索解决方案</li>
-            </ul>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label" style="color:var(--c-fg-light-2)">AI Agent 课程</span>
-          <span class="label" style="color:var(--c-fg-light-2)">第一课</span>
-        </div>
-      </section>
-
-      <!-- SLIDE 15 · CHAPTER: 代码实战 -->
-      <section class="slide light slide--chapter">
-        <div class="chapter-num" data-anim="fade-in" data-delay="0">04 / 代码实战</div>
-        <h1 class="h1" style="max-width:90%;color:var(--c-fg-light)" data-anim="fade-up" data-delay="1">KNOWLEDGE<br/>GRAPH<br/>项目</h1>
-      </section>
-
-      <!-- SLIDE 16 · SPLIT: 项目结构 -->
-      <section class="slide dark slide--split">
-        <div class="slide-chrome">
-          <span class="label" style="color:var(--c-fg-2)" data-anim="fade-in" data-delay="0">项目结构</span>
-          <span class="label" style="color:var(--c-fg-2)" data-anim="fade-in" data-delay="0">16 / 20</span>
-        </div>
-        <div class="slide-body">
-          <div class="split-text" data-anim="fade-up" data-delay="1">
-            <p class="label" style="color:var(--c-fg-2);letter-spacing:0.12em">PROJECT STRUCTURE</p>
-            <h2 class="h2">知识图谱助手</h2>
-            <p class="lead muted" style="font-weight:400;text-transform:none">从文本中提取知识三元组，构建可视化知识图谱。</p>
-          </div>
-          <div data-anim="fade-up" data-delay="3" style="font-family:var(--f-mono);font-size:var(--sz-body);line-height:2;color:var(--c-fg-2)">
-            <div style="color:var(--c-fg)">ai-agent-course/</div>
-            <div>&nbsp;&nbsp;├── app/</div>
-            <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span style="color:var(--c-fg)">main.py</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# FastAPI 服务器</div>
-            <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span style="color:var(--c-fg)">agent_loop.py</span>&nbsp;&nbsp;# ⭐ 核心 Agent Loop</div>
-            <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── graph_store.py&nbsp;&nbsp;# 图谱存储</div>
-            <div>&nbsp;&nbsp;├── static/</div>
-            <div>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── index.html&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 前端可视化</div>
-            <div>&nbsp;&nbsp;└── .env&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# API 配置</div>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label" style="color:var(--c-fg-2)">AI Agent 课程</span>
-          <span class="label" style="color:var(--c-fg-2)">第一课</span>
-        </div>
-      </section>
-
-      <!-- SLIDE 17 · SPLIT: 核心代码 -->
-      <section class="slide light slide--split">
-        <div class="slide-chrome">
-          <span class="label" style="color:var(--c-fg-light-2)" data-anim="fade-in" data-delay="0">核心代码</span>
-          <span class="label" style="color:var(--c-fg-light-2)" data-anim="fade-in" data-delay="0">17 / 20</span>
-        </div>
-        <div class="slide-body">
-          <div class="split-text" data-anim="fade-up" data-delay="1">
-            <p class="label" style="color:var(--c-fg-light-2);letter-spacing:0.12em">AGENT_LOOP.PY</p>
-            <h2 class="h2" style="color:var(--c-fg-light)">四个核心函数</h2>
-            <p class="lead" style="color:var(--c-fg-light-2);font-weight:400;text-transform:none">每个函数对应 Agent Loop 的一个步骤。</p>
-          </div>
-          <div data-anim="fade-up" data-delay="3" style="font-family:var(--f-mono);font-size:var(--sz-body);line-height:1.8">
-            <div style="color:var(--c-fg-light);font-weight:700">def perceive(user_input, history):</div>
-            <div style="color:var(--c-fg-light-2)">&nbsp;&nbsp;# 整理上下文，构建 messages</div>
-            <div style="margin-top:1vh;color:var(--c-fg-light);font-weight:700">def think(messages):</div>
-            <div style="color:var(--c-fg-light-2)">&nbsp;&nbsp;# 调用 LLM，获取推理结果</div>
-            <div style="margin-top:1vh;color:var(--c-fg-light);font-weight:700">def act(response):</div>
-            <div style="color:var(--c-fg-light-2)">&nbsp;&nbsp;# 解析并执行工具调用</div>
-            <div style="margin-top:1vh;color:var(--c-fg-light);font-weight:700">def observe(result, confidence):</div>
-            <div style="color:var(--c-fg-light-2)">&nbsp;&nbsp;# 判断是否完成或继续循环</div>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label" style="color:var(--c-fg-light-2)">AI Agent 课程</span>
-          <span class="label" style="color:var(--c-fg-light-2)">第一课</span>
-        </div>
-      </section>
-
-      <!-- SLIDE 18 · CHAPTER: 课后作业 -->
-      <section class="slide light slide--chapter">
-        <div class="chapter-num" data-anim="fade-in" data-delay="0">05 / 课后作业</div>
-        <h1 class="h1" style="max-width:90%;color:var(--c-fg-light)" data-anim="fade-up" data-delay="1">动手<br/>实践</h1>
-      </section>
-
-      <!-- SLIDE 19 · SPLIT: 作业说明 -->
-      <section class="slide dark slide--split">
-        <div class="slide-chrome">
-          <span class="label" style="color:var(--c-fg-2)" data-anim="fade-in" data-delay="0">Assignment</span>
-          <span class="label" style="color:var(--c-fg-2)" data-anim="fade-in" data-delay="0">19 / 20</span>
-        </div>
-        <div class="slide-body">
-          <div class="split-text" data-anim="fade-up" data-delay="1">
-            <p class="label" style="color:var(--c-fg-2);letter-spacing:0.12em">YOUR TASK</p>
-            <h2 class="h2">补全<br/>AGENT LOOP</h2>
-            <p class="lead muted" style="font-weight:400;text-transform:none">Fork 学生仓库，补全 agent_loop.py 中的 4 个 TODO。</p>
-          </div>
-          <div data-anim="fade-up" data-delay="3">
-            <ul class="bullet-list" style="gap:var(--gap-md)">
-              <li><strong style="color:var(--c-fg)">TODO 1</strong> — 实现 perceive()：构建消息列表</li>
-              <li><strong style="color:var(--c-fg)">TODO 2</strong> — 实现 think()：调用 LLM API</li>
-              <li><strong style="color:var(--c-fg)">TODO 3</strong> — 实现 act()：解析工具调用</li>
-              <li><strong style="color:var(--c-fg)">TODO 4</strong> — 实现 observe()：置信度判断</li>
-            </ul>
-            <div style="margin-top:var(--gap-lg);font-family:var(--f-mono);font-size:var(--sz-caption);color:var(--c-fg-2)">
-              参考文档：docs/ASSIGNMENT.md
+        <!-- SLIDE 1: 封面 -->
+        <section class="slide bg-cork slide-title active">
+            <div class="slide-content">
+                <div class="title-cluster">
+                    <div class="post-it post-it-yellow main-title-postit pin">
+                        <h1>AI Agent</h1>
+                        <p class="handwritten" style="margin-top: 0.5rem; color: var(--ink-light);">智能体架构与原理</p>
+                    </div>
+                    <div class="post-it post-it-blue title-accent-1 pin-blue">第一课</div>
+                    <div class="post-it post-it-pink title-accent-2 pin">从零开始</div>
+                    <div class="post-it post-it-green title-accent-3">🤖</div>
+                </div>
+                <p class="subtitle-text">Lesson 1 — Agent 是什么？为什么它正在改变世界？</p>
             </div>
-          </div>
-        </div>
-        <div class="slide-foot">
-          <span class="label" style="color:var(--c-fg-2)">AI Agent 课程</span>
-          <span class="label" style="color:var(--c-fg-2)">第一课</span>
-        </div>
-      </section>
+        </section>
 
-      <!-- SLIDE 20 · END -->
-      <section class="slide light slide--end">
-        <div style="flex:1;display:flex;align-items:flex-start;padding-top:calc(var(--pad-y)*1.5)">
-          <h1 class="h1" style="color:var(--c-fg-light);max-width:95%" data-anim="fade-up" data-delay="0">开始构建<br/>你的第一个<br/>AI AGENT</h1>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--pad-x);padding-bottom:var(--pad-y);border-top:2px solid var(--c-fg-light);padding-top:var(--gap-md)" data-anim="fade-in" data-delay="2">
-          <div>
-            <p class="label" style="color:var(--c-fg-light-2);margin-bottom:0.8vh">STUDENT REPO</p>
-            <p class="body" style="color:var(--c-fg-light);font-weight:500">github.com/lyxxn0414/<br/>ai-agent-course-student</p>
-          </div>
-          <div>
-            <p class="label" style="color:var(--c-fg-light-2);margin-bottom:0.8vh">REFERENCE</p>
-            <p class="body" style="color:var(--c-fg-light);font-weight:500">github.com/lyxxn0414/<br/>ai-agent-course</p>
-          </div>
-        </div>
-      </section>
+        <!-- SLIDE 2: 课程大纲 -->
+        <section class="slide bg-paper">
+            <div class="slide-content">
+                <div class="statement-layout">
+                    <div class="post-it post-it-yellow statement-postit pin tape">
+                        <h2>📋 课程大纲</h2>
+                        <p style="margin-top: 1rem;">本节课我们将学习：</p>
+                        <ul style="margin-top: 1rem;">
+                            <li>🤔 为什么要学 AI Agent？</li>
+                            <li>💬 聊天机器人 vs Agent 的区别</li>
+                            <li>🧠 Agent 的四大核心组件</li>
+                            <li>🔄 Agent Loop 工作原理</li>
+                            <li>💻 动手实战：构建你的第一个 Agent</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="post-it post-it-blue side-note pin-blue">
+                    <p class="handwritten">先理解，再动手！</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 3: 为什么学 Agent -->
+        <section class="slide bg-warm">
+            <div class="slide-content">
+                <div class="statement-layout">
+                    <div class="post-it post-it-blue statement-postit pin-blue tape">
+                        <h2>🤔 为什么要学 AI Agent？</h2>
+                        <p style="margin-top: 1.5rem;">2024-2025 年，AI 领域最火的方向就是 Agent。</p>
+                        <p style="margin-top: 1rem;">从 ChatGPT 到 Cursor、Devin、Manus —— AI 正在从「回答问题」进化为「自主完成任务」。</p>
+                        <p class="handwritten" style="margin-top: 1.5rem; text-align: right;">—— 这不是趋势，是正在发生的事</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 4: Agent 应用场景 -->
+        <section class="slide bg-paper">
+            <div class="slide-content">
+                <div class="three-col-layout">
+                    <div class="post-it post-it-yellow feature-postit pin">
+                        <div class="feature-icon">🛠️</div>
+                        <h3>自动写代码</h3>
+                        <p>Cursor、GitHub Copilot 帮你写代码、修 Bug、做 Code Review</p>
+                    </div>
+                    <div class="post-it post-it-blue feature-postit pin-blue">
+                        <div class="feature-icon">🔍</div>
+                        <h3>智能搜索</h3>
+                        <p>Perplexity 自动搜索多个来源，汇总分析，给你结论</p>
+                    </div>
+                    <div class="post-it post-it-pink feature-postit pin">
+                        <div class="feature-icon">🤖</div>
+                        <h3>自动化助手</h3>
+                        <p>Manus、Devin 自动完成复杂任务，从规划到执行一条龙</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 5: ChatBot vs Agent 对比 -->
+        <section class="slide bg-warm">
+            <div class="slide-content">
+                <div class="compare-layout">
+                    <div class="post-it post-it-blue compare-postit left pin-blue">
+                        <h3>💬 ChatBot</h3>
+                        <ul class="compare-list">
+                            <li>你问一句，它答一句</li>
+                            <li>没有记忆</li>
+                            <li>不能使用工具</li>
+                            <li>不能自主行动</li>
+                            <li>被动响应</li>
+                        </ul>
+                    </div>
+                    <div class="compare-vs">vs</div>
+                    <div class="post-it post-it-yellow compare-postit right pin-gold">
+                        <h3>🤖 Agent</h3>
+                        <ul class="compare-list">
+                            <li>理解目标，自主规划</li>
+                            <li>有长期记忆</li>
+                            <li>能调用工具和 API</li>
+                            <li>能循环执行直到完成</li>
+                            <li>主动行动</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 6: 一句话总结 -->
+        <section class="slide bg-cork">
+            <div class="slide-content">
+                <div class="statement-layout">
+                    <div class="post-it post-it-green statement-postit pin-green tape">
+                        <h2>💡 一句话理解 Agent</h2>
+                        <p style="margin-top: 1.5rem; font-size: 1.3em;">Agent = LLM + Tools + Memory + Planning</p>
+                        <p style="margin-top: 1rem;">大语言模型是「大脑」，工具是「手脚」，记忆是「笔记本」，规划是「思考方式」。</p>
+                        <p class="handwritten" style="margin-top: 1.5rem; text-align: right;">这四个组件缺一不可！</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 7: 组件 1 - LLM -->
+        <section class="slide bg-paper">
+            <div class="slide-content">
+                <div class="imgtext-layout">
+                    <div class="photo-frame pin tape">
+                        <div class="photo-inner" style="display:flex;align-items:center;justify-content:center;font-size:5rem;">
+                            🧠
+                        </div>
+                    </div>
+                    <div class="text-cluster">
+                        <div class="post-it post-it-yellow main-text-postit pin">
+                            <span class="label">组件 1</span>
+                            <h3 style="margin-top: 1rem;">LLM — 大语言模型</h3>
+                            <p>Agent 的「大脑」。负责理解用户意图、推理决策、生成回复。</p>
+                            <p style="margin-top: 1rem;">常见的 LLM：GPT-4、Claude、Llama、Qwen</p>
+                            <p style="margin-top: 0.5rem;">它不只是生成文字，更重要的是<strong>做决策</strong>。</p>
+                        </div>
+                        <div class="post-it post-it-pink mini-note pin">
+                            <p class="handwritten">LLM 是 Agent 的核心引擎</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 8: 组件 2 - Tools -->
+        <section class="slide bg-warm">
+            <div class="slide-content">
+                <div class="imgtext-layout">
+                    <div class="photo-frame pin tape">
+                        <div class="photo-inner" style="display:flex;align-items:center;justify-content:center;font-size:5rem;">
+                            🛠️
+                        </div>
+                    </div>
+                    <div class="text-cluster">
+                        <div class="post-it post-it-blue main-text-postit pin-blue">
+                            <span class="label">组件 2</span>
+                            <h3 style="margin-top: 1rem;">Tools — 工具</h3>
+                            <p>Agent 的「手脚」。LLM 本身只能生成文字，工具让它能：</p>
+                            <ul style="margin-top: 1rem;">
+                                <li>🔍 搜索网页</li>
+                                <li>💻 执行代码</li>
+                                <li>📁 读写文件</li>
+                                <li>🌐 调用 API</li>
+                            </ul>
+                        </div>
+                        <div class="post-it post-it-green mini-note pin-green">
+                            <p class="handwritten">Function Calling 是关键技术</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 9: 组件 3 - Memory -->
+        <section class="slide bg-cork">
+            <div class="slide-content">
+                <div class="imgtext-layout">
+                    <div class="photo-frame pin tape">
+                        <div class="photo-inner" style="display:flex;align-items:center;justify-content:center;font-size:5rem;">
+                            📝
+                        </div>
+                    </div>
+                    <div class="text-cluster">
+                        <div class="post-it post-it-pink main-text-postit pin">
+                            <span class="label">组件 3</span>
+                            <h3 style="margin-top: 1rem;">Memory — 记忆</h3>
+                            <p>Agent 的「笔记本」。让 Agent 记住：</p>
+                            <ul style="margin-top: 1rem;">
+                                <li>短期记忆：当前对话上下文</li>
+                                <li>长期记忆：用户偏好、历史经验</li>
+                                <li>工作记忆：当前任务状态</li>
+                            </ul>
+                        </div>
+                        <div class="post-it post-it-orange mini-note pin-gold">
+                            <p class="handwritten">没有记忆的 Agent 是金鱼 🐟</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 10: 组件 4 - Planning -->
+        <section class="slide bg-paper">
+            <div class="slide-content">
+                <div class="imgtext-layout">
+                    <div class="photo-frame pin tape">
+                        <div class="photo-inner" style="display:flex;align-items:center;justify-content:center;font-size:5rem;">
+                            🗺️
+                        </div>
+                    </div>
+                    <div class="text-cluster">
+                        <div class="post-it post-it-yellow main-text-postit pin">
+                            <span class="label">组件 4</span>
+                            <h3 style="margin-top: 1rem;">Planning — 规划</h3>
+                            <p>Agent 的「思考方式」。包括：</p>
+                            <ul style="margin-top: 1rem;">
+                                <li>任务分解：大任务拆成小步骤</li>
+                                <li>反思纠错：执行后检查结果</li>
+                                <li>策略选择：选最优路径</li>
+                            </ul>
+                            <p style="margin-top: 1rem;">常用技术：ReAct、Chain-of-Thought</p>
+                        </div>
+                        <div class="post-it post-it-blue mini-note pin-blue">
+                            <p class="handwritten">先想后做，边做边改</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 11: 四大组件总览 -->
+        <section class="slide bg-warm">
+            <div class="slide-content">
+                <div class="three-col-layout" style="grid-template-columns: repeat(4, 1fr);">
+                    <div class="post-it post-it-yellow feature-postit pin">
+                        <div class="feature-icon">🧠</div>
+                        <h3>LLM</h3>
+                        <p>大脑：理解与决策</p>
+                    </div>
+                    <div class="post-it post-it-blue feature-postit pin-blue">
+                        <div class="feature-icon">🛠️</div>
+                        <h3>Tools</h3>
+                        <p>手脚：执行操作</p>
+                    </div>
+                    <div class="post-it post-it-pink feature-postit pin">
+                        <div class="feature-icon">📝</div>
+                        <h3>Memory</h3>
+                        <p>笔记本：记住经验</p>
+                    </div>
+                    <div class="post-it post-it-green feature-postit pin-green">
+                        <div class="feature-icon">🗺️</div>
+                        <h3>Planning</h3>
+                        <p>思维：规划路径</p>
+                    </div>
+                </div>
+                <div class="post-it post-it-orange side-note pin-gold">
+                    <p class="handwritten">四大组件协同工作，缺一不可！</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 12: Agent Loop -->
+        <section class="slide bg-cork">
+            <div class="slide-content">
+                <div class="statement-layout">
+                    <div class="post-it post-it-blue statement-postit pin-blue tape">
+                        <h2>🔄 Agent Loop — 核心循环</h2>
+                        <p style="margin-top: 1.5rem; font-size: 1.2em;">Agent 的工作流程是一个循环：</p>
+                        <p style="margin-top: 1rem;">① 接收任务 → ② 思考规划 → ③ 选择工具 → ④ 执行动作 → ⑤ 观察结果 → ⑥ 判断是否完成</p>
+                        <p style="margin-top: 1rem;">如果没完成 → 回到第②步继续</p>
+                        <p class="handwritten" style="margin-top: 1.5rem; text-align: right;">这就是 ReAct: Reason + Act</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 13: Agent Loop 图解 -->
+        <section class="slide bg-paper">
+            <div class="slide-content">
+                <div class="diagram-layout">
+                    <div class="diagram-canvas pin tape">
+                        <h3>Agent Loop 流程</h3>
+                        <svg viewBox="0 0 400 300" style="max-width: 400px;">
+                            <defs>
+                                <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#2d2a26"/>
+                                </marker>
+                            </defs>
+                            <rect x="150" y="10" width="100" height="40" rx="8" fill="#ffe066" stroke="#2d2a26" stroke-width="2"/>
+                            <text x="200" y="35" text-anchor="middle" font-family="Caveat" font-size="16" fill="#2d2a26">用户输入</text>
+                            <rect x="150" y="80" width="100" height="40" rx="8" fill="#a5d8ff" stroke="#2d2a26" stroke-width="2"/>
+                            <text x="200" y="105" text-anchor="middle" font-family="Caveat" font-size="16" fill="#2d2a26">思考规划</text>
+                            <rect x="150" y="150" width="100" height="40" rx="8" fill="#ffc9c9" stroke="#2d2a26" stroke-width="2"/>
+                            <text x="200" y="175" text-anchor="middle" font-family="Caveat" font-size="16" fill="#2d2a26">调用工具</text>
+                            <rect x="150" y="220" width="100" height="40" rx="8" fill="#b2f2bb" stroke="#2d2a26" stroke-width="2"/>
+                            <text x="200" y="245" text-anchor="middle" font-family="Caveat" font-size="16" fill="#2d2a26">观察结果</text>
+                            <line x1="200" y1="50" x2="200" y2="80" stroke="#2d2a26" stroke-width="2" marker-end="url(#arrow)"/>
+                            <line x1="200" y1="120" x2="200" y2="150" stroke="#2d2a26" stroke-width="2" marker-end="url(#arrow)"/>
+                            <line x1="200" y1="190" x2="200" y2="220" stroke="#2d2a26" stroke-width="2" marker-end="url(#arrow)"/>
+                            <path d="M250 240 Q330 240 330 100 Q330 80 250 80" stroke="#2d2a26" stroke-width="2" fill="none" stroke-dasharray="6 3" marker-end="url(#arrow)"/>
+                            <text x="355" y="170" font-family="Caveat" font-size="13" fill="#2d2a26" transform="rotate(90 355 170)">未完成？继续</text>
+                            <line x1="200" y1="260" x2="200" y2="285" stroke="#2d2a26" stroke-width="2" marker-end="url(#arrow)"/>
+                            <text x="200" y="298" text-anchor="middle" font-family="Caveat" font-size="14" fill="#2d2a26">完成 → 输出</text>
+                        </svg>
+                    </div>
+                    <div class="diagram-note post-it post-it-yellow pin">
+                        <h3>关键步骤</h3>
+                        <div class="stat-row"><span class="stat-label">Reason</span><span class="stat-value">思考</span></div>
+                        <div class="stat-row"><span class="stat-label">Act</span><span class="stat-value">行动</span></div>
+                        <div class="stat-row"><span class="stat-label">Observe</span><span class="stat-value">观察</span></div>
+                        <div class="stat-row"><span class="stat-label">Repeat</span><span class="stat-value">重复</span></div>
+                        <p class="handwritten" style="margin-top: 1rem;">循环直到任务完成！</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 14: 传统程序 vs Agent -->
+        <section class="slide bg-warm">
+            <div class="slide-content">
+                <div class="compare-layout">
+                    <div class="post-it post-it-pink compare-postit left pin">
+                        <h3>📦 传统程序</h3>
+                        <ul class="compare-list">
+                            <li>流程写死（if-else）</li>
+                            <li>输入固定格式</li>
+                            <li>不能处理意外</li>
+                            <li>每个功能都要手写</li>
+                            <li>修改需要重新编程</li>
+                        </ul>
+                    </div>
+                    <div class="compare-vs">vs</div>
+                    <div class="post-it post-it-green compare-postit right pin-green">
+                        <h3>🤖 AI Agent</h3>
+                        <ul class="compare-list">
+                            <li>动态决策（LLM 推理）</li>
+                            <li>自然语言输入</li>
+                            <li>灵活应对变化</li>
+                            <li>通过工具自动扩展能力</li>
+                            <li>用 prompt 就能调整行为</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 15: Function Calling -->
+        <section class="slide bg-cork">
+            <div class="slide-content">
+                <div class="statement-layout">
+                    <div class="post-it post-it-yellow statement-postit pin tape">
+                        <h2>📞 Function Calling</h2>
+                        <p style="margin-top: 1.5rem;">Agent 调用工具的核心机制：</p>
+                        <p style="margin-top: 1rem;">1️⃣ 告诉 LLM 有哪些工具可用（函数定义）</p>
+                        <p>2️⃣ LLM 分析请求，决定调用哪个工具</p>
+                        <p>3️⃣ LLM 生成调用参数（JSON）</p>
+                        <p>4️⃣ 代码执行工具，返回结果给 LLM</p>
+                        <p>5️⃣ LLM 基于结果继续思考或回复</p>
+                    </div>
+                </div>
+                <div class="post-it post-it-blue side-note pin-blue">
+                    <p class="handwritten">LLM 与外界交互的桥梁！</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 16: 实战预告 -->
+        <section class="slide bg-paper">
+            <div class="slide-content">
+                <div class="statement-layout">
+                    <div class="post-it post-it-green statement-postit pin-green tape">
+                        <h2>💻 实战时间！</h2>
+                        <p style="margin-top: 1.5rem; font-size: 1.2em;">用 Python 构建一个能查天气的 Agent</p>
+                        <p style="margin-top: 1rem;">你将学会：</p>
+                        <ul style="margin-top: 0.5rem;">
+                            <li>✅ 用 OpenAI API 发消息</li>
+                            <li>✅ 定义 Tool（函数）</li>
+                            <li>✅ 实现 Agent Loop</li>
+                            <li>✅ 处理 Function Calling</li>
+                        </ul>
+                        <p class="handwritten" style="margin-top: 1.5rem; text-align: right;">Talk is cheap, show me the code!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 17: 代码步骤 -->
+        <section class="slide bg-warm">
+            <div class="slide-content">
+                <div class="timeline-layout">
+                    <div class="timeline-row">
+                        <div class="post-it post-it-yellow timeline-node pin">
+                            <h3>Step 1</h3>
+                            <p class="phase-label">初始化</p>
+                        </div>
+                        <div class="timeline-connector">
+                            <svg viewBox="0 0 200 60" preserveAspectRatio="none">
+                                <path d="M0 30 Q100 10, 200 30" stroke="#2d2a26" stroke-width="3" fill="none" opacity="0.3" stroke-dasharray="8 4"/>
+                                <polygon points="190,25 200,30 190,35" fill="#2d2a26" opacity="0.3"/>
+                            </svg>
+                        </div>
+                        <div class="post-it post-it-white timeline-content" style="border: 2px solid var(--ink);">
+                            <p>创建 OpenAI client，设置 system prompt 和 tools 定义</p>
+                        </div>
+                    </div>
+                    <div class="timeline-row">
+                        <div class="post-it post-it-blue timeline-node pin-blue">
+                            <h3>Step 2</h3>
+                            <p class="phase-label">循环</p>
+                        </div>
+                        <div class="timeline-connector">
+                            <svg viewBox="0 0 200 60" preserveAspectRatio="none">
+                                <path d="M0 30 Q100 50, 200 30" stroke="#2d2a26" stroke-width="3" fill="none" opacity="0.3" stroke-dasharray="8 4"/>
+                                <polygon points="190,25 200,30 190,35" fill="#2d2a26" opacity="0.3"/>
+                            </svg>
+                        </div>
+                        <div class="post-it post-it-white timeline-content" style="border: 2px solid var(--ink);">
+                            <p>while True: 发消息 → 检查 tool_calls → 执行 → 追加结果</p>
+                        </div>
+                    </div>
+                    <div class="timeline-row">
+                        <div class="post-it post-it-green timeline-node pin-green">
+                            <h3>Step 3</h3>
+                            <p class="phase-label">输出</p>
+                        </div>
+                        <div class="timeline-connector">
+                            <svg viewBox="0 0 200 60" preserveAspectRatio="none">
+                                <path d="M0 30 Q100 10, 200 30" stroke="#2d2a26" stroke-width="3" fill="none" opacity="0.3" stroke-dasharray="8 4"/>
+                                <polygon points="190,25 200,30 190,35" fill="#2d2a26" opacity="0.3"/>
+                            </svg>
+                        </div>
+                        <div class="post-it post-it-white timeline-content" style="border: 2px solid var(--ink);">
+                            <p>没有 tool_calls → 循环结束 → 返回最终回复</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 18: 伪代码 -->
+        <section class="slide bg-cork">
+            <div class="slide-content">
+                <div class="two-col-layout">
+                    <div class="post-it post-it-yellow col-postit pin" style="transform: rotate(-1deg);">
+                        <span class="label">核心伪代码</span>
+                        <pre style="margin-top: 1rem; font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; line-height: 1.6;">messages = [system_prompt, user_msg]
+
+while True:
+    response = llm.chat(messages, tools)
+
+    if response.tool_calls:
+        for call in tool_calls:
+            result = execute(call)
+            messages.append(result)
+    else:
+        print(response.content)
+        break</pre>
+                    </div>
+                    <div class="post-it post-it-blue col-postit pin-blue" style="transform: rotate(1deg); margin-top: 2rem;">
+                        <span class="label">要点</span>
+                        <h3 style="margin-top: 1rem;">核心就三件事</h3>
+                        <ul style="margin-top: 1rem;">
+                            <li>📨 发消息给 LLM</li>
+                            <li>🔧 处理 tool_calls</li>
+                            <li>🔁 循环到结束</li>
+                        </ul>
+                        <p class="handwritten" style="margin-top: 1rem;">没有想象中那么难！</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 19: 课后作业 -->
+        <section class="slide bg-paper">
+            <div class="slide-content">
+                <div class="two-col-layout">
+                    <div class="post-it post-it-pink col-postit pin" style="transform: rotate(-2deg);">
+                        <span class="label">📝 课后作业</span>
+                        <h3 style="margin-top: 1rem;">动手练习</h3>
+                        <ul style="margin-top: 1rem;">
+                            <li>1️⃣ 克隆课程仓库</li>
+                            <li>2️⃣ 配置 API Key</li>
+                            <li>3️⃣ 完成 lesson1/ 下的 TODO</li>
+                            <li>4️⃣ 实现 get_weather 工具</li>
+                            <li>5️⃣ 实现 Agent Loop</li>
+                        </ul>
+                    </div>
+                    <div class="post-it post-it-green col-postit pin-green" style="transform: rotate(1deg); margin-top: 2rem;">
+                        <span class="label">💡 提示</span>
+                        <h3 style="margin-top: 1rem;">参考资源</h3>
+                        <p style="margin-top: 1rem;">GitHub 仓库：<br>github.com/lyxxn0414/<br>ai-agent-course-student</p>
+                        <p style="margin-top: 1rem;">遇到问题可以：</p>
+                        <ul>
+                            <li>看参考实现的代码</li>
+                            <li>问 ChatGPT / Claude</li>
+                            <li>在群里讨论</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 20: 结尾 -->
+        <section class="slide bg-cork slide-title">
+            <div class="slide-content">
+                <div class="closing-cluster">
+                    <div class="post-it post-it-yellow closing-main pin">
+                        <h2>🎉 第一课结束！</h2>
+                        <p class="handwritten" style="margin-top: 1rem;">下节课：Skills & Tools 深入实战</p>
+                    </div>
+                    <div class="post-it post-it-blue closing-accent-1 pin-blue">
+                        <p class="handwritten">Agent = LLM + Tools + Memory + Planning</p>
+                    </div>
+                    <div class="post-it post-it-pink closing-accent-2 pin">
+                        <p class="handwritten">动手写代码！</p>
+                    </div>
+                    <div class="post-it post-it-green closing-accent-3 pin-green">
+                        <p class="handwritten">✅</p>
+                    </div>
+                    <div class="post-it post-it-orange closing-accent-4 pin-gold">
+                        <p class="handwritten">🚀</p>
+                    </div>
+                </div>
+                <p style="margin-top: 3rem; font-family: 'Zilla Slab', serif; font-style: italic; color: var(--ink-light); font-size: 1.1rem;">有问题随时问，我们下节课见！</p>
+            </div>
+        </section>
 
     </div>
 
+
 <script>
-      /* ══════════════════════════════════════════════════════════════════════
-         STUDIO PRESENTATION ENGINE
-         Self-contained navigation: keyboard, touch, mouse-wheel, nav-dots.
-         No external dependencies.
-         ══════════════════════════════════════════════════════════════════════ */
+      // Page-by-page navigation: arrow keys, space, PgUp/PgDn, Home/End,
+      // touch swipe, and mouse wheel — same vocabulary as the rest of the
+      // template library. Pure JS, no dependencies. Visual styling unchanged.
       (function () {
-        "use strict";
-
-        /* ── State ─────────────────────────────────────────────────────────── */
-        const deck = document.getElementById("deck");
-        const slides = Array.from(document.querySelectorAll(".slide"));
-        const dotsEl = document.getElementById("nav-dots");
-        const counter = document.getElementById("slide-counter");
+        const slides = Array.from(document.querySelectorAll('.slide'));
         const total = slides.length;
-        let current = 0;
-        let animating = false;
-
-        /* ── Bootstrap: set deck width, build nav dots ─────────────────────── */
-        function init() {
-          // The deck is one wide strip — width equals N full viewports
-          deck.style.width = total + "00vw";
-
-          // Build one dot per slide
-          slides.forEach(function (_, i) {
-            const btn = document.createElement("button");
-            btn.className = "nav-dot";
-            btn.setAttribute("aria-label", "Go to slide " + (i + 1));
-            btn.addEventListener("click", function () {
-              goTo(i);
-            });
-            dotsEl.appendChild(btn);
-          });
-
-          // Activate the first slide immediately
-          goTo(0, true); // true = skip transition on load
+        let current = slides.findIndex(s => s.classList.contains('active'));
+        if (current < 0) {
+          current = 0;
+          slides[0].classList.add('active');
         }
 
-        /* ── goTo: the single source of truth for navigation ───────────────── */
-        function goTo(index, instant) {
-          // Clamp to valid range
-          index = Math.max(0, Math.min(total - 1, index));
-          if (index === current && !instant) return;
-
-          // Mark animating to block rapid key/swipe spam
-          animating = true;
-
-          // Deactivate current slide: reset animations by toggling is-active
-          const prev = slides[current];
-          prev.classList.remove("is-active");
-          // Force a reflow so removing then re-adding is-active (on same slide)
-          // actually re-triggers the keyframe animations
-          void prev.offsetWidth; // eslint-disable-line no-void
-
-          // Translate the deck
-          if (instant) {
-            // Remove transition temporarily for the initial load snap
-            deck.style.transition = "none";
-            deck.style.transform = "translateX(-" + index + "00vw)";
-            void deck.offsetWidth; // force reflow
-            deck.style.transition = "";
-          } else {
-            deck.style.transform = "translateX(-" + index + "00vw)";
-          }
-
-          // Activate new slide
-          current = index;
-          const next = slides[current];
-          next.classList.add("is-active");
-
-          // Update nav dots
-          Array.from(dotsEl.children).forEach(function (dot, i) {
-            dot.classList.toggle("is-active", i === current);
-          });
-
-          // Update counter: "3 / 12"
-          counter.textContent = current + 1 + " / " + total;
-
-          // Unlock after transition completes
-          const delay = instant
-            ? 0
-            : parseFloat(getComputedStyle(deck).transitionDuration) * 1000;
-          setTimeout(function () {
-            animating = false;
-          }, delay);
+        function go(n) {
+          n = Math.max(0, Math.min(total - 1, n));
+          if (n === current) return;
+          slides[current].classList.remove('active');
+          slides[n].classList.add('active');
+          current = n;
+          // Reset scroll in case anything inside the slide was scrolled.
+          window.scrollTo(0, 0);
         }
 
-        /* ── Keyboard navigation ──────────────────────────────────────────── */
-        document.addEventListener("keydown", function (e) {
-          if (animating) return;
-          if (
-            e.key === "ArrowRight" ||
-            e.key === "ArrowDown" ||
-            e.key === " "
-          ) {
+        document.addEventListener('keydown', e => {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
             e.preventDefault();
-            goTo(current + 1);
-          } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+            go(current + 1);
+          } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
             e.preventDefault();
-            goTo(current - 1);
-          } else if (e.key === "Home") {
+            go(current - 1);
+          } else if (e.key === 'Home') {
             e.preventDefault();
-            goTo(0);
-          } else if (e.key === "End") {
+            go(0);
+          } else if (e.key === 'End') {
             e.preventDefault();
-            goTo(total - 1);
+            go(total - 1);
           }
         });
 
-        /* ── Mouse-wheel navigation ───────────────────────────────────────── */
-        let wheelCooldown = false;
-        document.addEventListener(
-          "wheel",
-          function (e) {
-            e.preventDefault();
-            if (animating || wheelCooldown) return;
-            wheelCooldown = true;
-            setTimeout(function () {
-              wheelCooldown = false;
-            }, 900);
-            if (e.deltaY > 0 || e.deltaX > 0) {
-              goTo(current + 1);
-            } else {
-              goTo(current - 1);
-            }
-          },
-          { passive: false },
-        );
+        // Touch swipe (mobile / trackpad)
+        let touchStartX = 0;
+        let touchStartY = 0;
+        document.addEventListener('touchstart', e => {
+          touchStartX = e.changedTouches[0].clientX;
+          touchStartY = e.changedTouches[0].clientY;
+        }, { passive: true });
+        document.addEventListener('touchend', e => {
+          const dx = e.changedTouches[0].clientX - touchStartX;
+          const dy = e.changedTouches[0].clientY - touchStartY;
+          if (Math.abs(dx) < 50 && Math.abs(dy) < 50) return;
+          if (Math.abs(dx) > Math.abs(dy)) {
+            go(current + (dx < 0 ? 1 : -1));
+          } else {
+            go(current + (dy < 0 ? 1 : -1));
+          }
+        }, { passive: true });
 
-        /* ── Touch swipe navigation ───────────────────────────────────────── */
-        let touchStartX = null;
-        let touchStartY = null;
-
-        document.addEventListener(
-          "touchstart",
-          function (e) {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-          },
-          { passive: true },
-        );
-
-        document.addEventListener(
-          "touchend",
-          function (e) {
-            if (touchStartX === null) return;
-            const dx = touchStartX - e.changedTouches[0].clientX;
-            const dy = touchStartY - e.changedTouches[0].clientY;
-            // Only respond if horizontal swipe is dominant
-            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
-              if (animating) return;
-              if (dx > 0) {
-                goTo(current + 1); // swipe left: next
-              } else {
-                goTo(current - 1); // swipe right: prev
-              }
-            }
-            touchStartX = null;
-            touchStartY = null;
-          },
-          { passive: true },
-        );
-
-        /* ── Boot ─────────────────────────────────────────────────────────── */
-        init();
+        // Mouse wheel — locked for 700ms to prevent multi-skip on trackpads
+        let wheelLocked = false;
+        document.addEventListener('wheel', e => {
+          if (wheelLocked) return;
+          const primary = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+          if (Math.abs(primary) < 5) return;
+          go(current + (primary > 0 ? 1 : -1));
+          wheelLocked = true;
+          setTimeout(() => { wheelLocked = false; }, 700);
+        }, { passive: true });
       })();
     </script>
-  </body>
+</body>
 </html>
-
